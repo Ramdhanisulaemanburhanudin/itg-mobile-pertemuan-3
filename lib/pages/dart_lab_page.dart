@@ -188,6 +188,74 @@ class _DartLabPageState extends State<DartLabPage> {
     ].join('\n'));
   }
 
+  // 6) HEAL: immutable pattern — hero.heal() mengembalikan Hero BARU
+  void demoHeal() {
+    final before = HeroRpg(name: 'Rani', job: Job.mage, baseHp: 80, baseMp: 120);
+    final after = before.heal(); // tidak mengubah 'before', melainkan buat object baru
+
+    show([
+      '=== Heal (Immutable Pattern) ===',
+      'Sebelum heal:',
+      '  $before',
+      '',
+      'Sesudah heal (+10 HP):',
+      '  $after',
+      '',
+      'Apakah object berubah? ${before == after}',
+      '(before.baseHp: ${before.baseHp}  →  after.baseHp: ${after.baseHp})',
+      '',
+      'Catatan:',
+      '- heal() TIDAK mengubah hero asli (immutable)',
+      '- Mengembalikan Hero BARU dengan hp + 10',
+      '- Pola ini aman untuk state management',
+    ].join('\n'));
+  }
+
+  // 7) INVENTORY: Map<String,int> item → jumlah
+  void demoInventory() {
+    final Map<String, int> inventory = {
+      '🗡️ Sword': 1,
+      '🧪 Potion': 5,
+      '🪄 Magic Staff': 1,
+      '🛡️ Shield': 2,
+      '💎 Gem': 10,
+      '🏹 Arrow': 30,
+    };
+
+    // Hitung total item
+    final totalItems = inventory.values.fold<int>(0, (sum, qty) => sum + qty);
+
+    // Filter item yang qty > 1
+    final stackable = inventory.entries
+        .where((e) => e.value > 1)
+        .map((e) => '  ${e.key}: ${e.value}x')
+        .toList();
+
+    // Format semua entry
+    final allItems = inventory.entries
+        .map((e) => '  • ${e.key.padRight(20)} x${e.value}')
+        .toList();
+
+    show([
+      '=== Inventory (Map<String,int>) ===',
+      '',
+      'Item               | Jumlah',
+      '-' * 30,
+      ...allItems,
+      '-' * 30,
+      'Total item: $totalItems',
+      '',
+      'Item stackable (qty > 1):',
+      ...stackable,
+      '',
+      'Catatan:',
+      '- Map<String,int> = item → jumlah',
+      '- .entries = pasangan key-value',
+      '- .map + .where = transform & filter',
+      '- fold = akumulasi total',
+    ].join('\n'));
+  }
+
   // 5) ASYNC/AWAIT + TRY/CATCH
   Future<void> demoAsyncAwait() async {
     show('⏳ Mengambil quest dari server...');
@@ -227,6 +295,54 @@ class _DartLabPageState extends State<DartLabPage> {
     ];
 
     return quests[rng.nextInt(quests.length)];
+  }
+
+  // 8) SHOP: async fetchShopItems dengan Future.delayed 1 detik
+  Future<void> demoShopItems() async {
+    show('⏳ Membuka toko...');
+
+    try {
+      final items = await fetchShopItems();
+      final lines = items.entries
+          .map((e) => '  🛒 ${e.key.padRight(18)} ${e.value} gold')
+          .toList();
+
+      show([
+        '=== Shop (Async/Await) ===',
+        '',
+        'Item tersedia hari ini:',
+        ...lines,
+        '',
+        'Catatan:',
+        '- fetchShopItems() adalah Future<Map<String,int>>',
+        '- Future.delayed mensimulasikan network request',
+        '- await menunggu data tiba sebelum lanjut',
+        '- Map<String,int> = nama item → harga (gold)',
+      ].join('\n'));
+    } catch (e) {
+      show('❌ Toko tidak bisa dibuka: $e');
+    }
+  }
+
+  Future<Map<String, int>> fetchShopItems() async {
+    // Simulasi network request dengan delay 1 detik
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Kadang stok habis
+    final rng = Random();
+    if (rng.nextInt(6) == 0) {
+      throw Exception('Toko sedang tutup 🔒');
+    }
+
+    // Kembalikan Map item → harga (gold)
+    return {
+      '🧪 Health Potion': 50,
+      '🔮 Mana Potion': 75,
+      '🗡️ Iron Sword': 200,
+      '🛡️ Wooden Shield': 150,
+      '🏹 Arrow (10x)': 30,
+      '💎 Magic Gem': 500,
+    };
   }
 
   @override
@@ -269,6 +385,33 @@ class _DartLabPageState extends State<DartLabPage> {
                   onPressed: () => demoAsyncAwait(),
                   icon: const Icon(Icons.cloud_download),
                   label: const Text('Async/Await'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => demoShopItems(),
+                  icon: const Icon(Icons.storefront),
+                  label: const Text('Shop'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple.shade100,
+                    foregroundColor: Colors.purple.shade800,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: demoHeal,
+                  icon: const Icon(Icons.favorite),
+                  label: const Text('Heal'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade100,
+                    foregroundColor: Colors.green.shade800,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: demoInventory,
+                  icon: const Icon(Icons.backpack),
+                  label: const Text('Inventory'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber.shade100,
+                    foregroundColor: Colors.amber.shade900,
+                  ),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => show('Tekan tombol untuk melihat demo Dart!'),
