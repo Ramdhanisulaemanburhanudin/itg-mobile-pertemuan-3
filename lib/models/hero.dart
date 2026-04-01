@@ -1,5 +1,6 @@
 enum Job { warrior, mage, archer }
 
+// ================== EXTENSION ==================
 extension JobLabel on Job {
   String get label {
     switch (this) {
@@ -13,6 +14,7 @@ extension JobLabel on Job {
   }
 }
 
+// ================== CLASS ==================
 class HeroRpg {
   final String name;
   final Job job;
@@ -26,52 +28,46 @@ class HeroRpg {
     required this.baseMp,
   });
 
-  // Named constructor (contoh)
-  const HeroRpg.novice(String name)
-      : name = name,
-        job = Job.warrior,
-        baseHp = 50,
-        baseMp = 20;
-
-  // Factory: bikin object dari Map/JSON
-  factory HeroRpg.fromJson(Map<String, dynamic> json) {
-    final jobString = (json['job'] as String?) ?? 'warrior';
-
-    final job = switch (jobString) {
-      'mage' => Job.mage,
-      'archer' => Job.archer,
-      _ => Job.warrior,
-    };
-
+  // ================== COPY WITH (IMMUTABLE) ==================
+  HeroRpg copyWith({
+    String? name,
+    Job? job,
+    int? baseHp,
+    int? baseMp,
+  }) {
     return HeroRpg(
-      name: (json['name'] as String?) ?? 'Unknown',
-      job: job,
-      baseHp: (json['baseHp'] as int?) ?? 50,
-      baseMp: (json['baseMp'] as int?) ?? 20,
+      name: name ?? this.name,
+      job: job ?? this.job,
+      baseHp: baseHp ?? this.baseHp,
+      baseMp: baseMp ?? this.baseMp,
     );
   }
 
-  // Getter: property hasil hitungan
-  int get power {
-    return switch (job) {
-      Job.warrior => baseHp + (baseMp ~/ 4),
-      Job.mage => baseMp + (baseHp ~/ 4),
-      Job.archer => (baseHp + baseMp) ~/ 2,
-    };
-  }
-
-  // Method: mengembalikan object baru (immutable style)
+  // ================== LEVEL UP ==================
   HeroRpg levelUp(int times) {
     return HeroRpg(
       name: name,
       job: job,
-      baseHp: baseHp + 10 * times,
-      baseMp: baseMp + 8 * times,
+      baseHp: baseHp + (10 * times),
+      baseMp: baseMp + (5 * times),
+    );
+  }
+
+  // ================== GETTER ==================
+  int get power => baseHp + baseMp;
+
+  // ================== FROM JSON ==================
+  factory HeroRpg.fromJson(Map<String, dynamic> json) {
+    return HeroRpg(
+      name: json['name'],
+      job: Job.values.firstWhere((e) => e.name == json['job']),
+      baseHp: json['baseHp'],
+      baseMp: json['baseMp'],
     );
   }
 
   @override
   String toString() {
-    return 'HeroRpg(name: $name, job: ${job.label}, hp: $baseHp, mp: $baseMp)';
+    return '$name (${job.label}) | HP: $baseHp | MP: $baseMp';
   }
 }
